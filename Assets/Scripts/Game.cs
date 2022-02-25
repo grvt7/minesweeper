@@ -11,6 +11,15 @@ public class Game : MonoBehaviour {
     // Creating a cell matrix to store the cell matrix
     private Cell[,] state;
 
+    // Storing the game state;
+    private bool gameOver;
+
+// Validate Number of Mines that can Exist on the Board
+private void OnValidate() {
+    // Restricts the number of mines that can exist to width * height of grid
+    mineCount = Mathf.Clamp(mineCount, 0, width * height);
+}
+
 // Called first when the game runs
     private void Awake() {
         // Getting the board component from the child component inside the grid.
@@ -24,6 +33,7 @@ public class Game : MonoBehaviour {
 
 // Initializes the board when the new Game Begins
     private void NewGame() {
+        gameOver = false;
         // Creates the Cell Array
         state = new Cell[width, height];
         // Populates the cell array with Empty Tiles
@@ -123,13 +133,20 @@ public class Game : MonoBehaviour {
 
     // Update Function to handle user inputs
     private void Update() {
-        // Check for User Input Right Mouse Click
-        if(Input.GetMouseButtonDown(1)) {
-            Flag();
-        }
-        // Checks for User Input Left Mouse Click
-        else if(Input.GetMouseButtonDown(0)) {
-            Reveal();
+        // Ig game is not over do this
+        if(!gameOver) {
+            // Check for User Input Right Mouse Click
+            if(Input.GetMouseButtonDown(1)) {
+                Flag();
+            }
+            // Checks for User Input Left Mouse Click
+            else if(Input.GetMouseButtonDown(0)) {
+                Reveal();
+            }
+        }else{
+            if(Input.GetMouseButtonDown(0)){
+                NewGame();
+            }
         }
     }
 
@@ -165,25 +182,113 @@ public class Game : MonoBehaviour {
         if(cell.type == Cell.Type.InValid || cell.revealed || cell.flagged) {
             return;
         }
-        // Turn the Cell to Reveal
-        cell.revealed = true;
-        // Update the cell state at that position from the cell settings
-        state[cellPosition.x, cellPosition.y] = cell;
+
+        switch(cell.type) {
+            case Cell.Type.Mine:
+                // Call Explode on the cell that is clickced
+                Explode(cell);
+                break;
+            case Cell.Type.Empty:
+                // Flooding the Board if Empty Cell is Clicked
+                Flood(cell);
+                break;
+            default:
+                // Turn the Cell to Reveal
+                cell.revealed = true;
+                // Update the cell state at that position from the cell settings
+                state[cellPosition.x, cellPosition.y] = cell;
+                CheckWinCondition();
+                break;
+        }
         // Redraws the board
         board.Draw(state);
     }
 
+// Flooding uses reccursion
+    private void Flood(Cell cell) {
+        if(cell.revealed) return;
+        if(cell.type == Cell.Type.Mine || cell.type == Cell.Type.InValid) {
+            return;
+        }
+        // Turn the Cell to Reveal
+        cell.revealed = true;
+        // Update the cell state at that position from the cell settings
+        state[cell.position.x, cell.position.y] = cell;
+        // Reccursively call until mines are hit
+        if(cell.type == Cell.Type.Empty) {
+            Flood(GetCell(cell.position.x - 1, cell.position.y));
+            Flood(GetCell(cell.position.x + 1, cell.position.y));
+            Flood(GetCell(cell.position.x, cell.position.y - 1));
+            Flood(GetCell(cell.position.x, cell.position.y + 1));
+        }
+    }
+
+// Logic to Explode when mines are clicked
+    private void Explode(Cell cell) {
+        // Sets gameOver to true
+        gameOver = true;
+        // Revel the cell which made the game over
+        cell.revealed = true;
+        // Set that cell to exploded
+        cell.exploded = true;
+        // Save it to the matrix
+        state[cell.position.x, cell.position.y] = cell;
+
+        // Loops over the grid and reveals all the other mines in case of explosion
+        for(int x=0; x < width; x++){
+            for(int y=0; y < height; y++){
+                cell = state[x,y];
+                if(cell.type == Cell.Type.Mine){
+                    cell.revealed = true;
+                    state[x,y] = cell;
+                }
+            }
+        }
+    }
+
+// Check for win conditions
+private void CheckWinCondition() {
+    for(int x=0; x < width; x++) {
+        for(int y=0; y < height; y++) {
+            Cell cell = state[x,y];
+
+            if(cell.type != Cell.Type.Mine && !cell.revealed) {
+                return;
+            }
+        }
+    }   
+    Debug.Log("Winner!");
+    gameOver = true;
+    // Loops over the grid and flags all the other mines in case of winning
+    for(int x=0; x < width; x++){
+        for(int y=0; y < height; y++){
+            Cell cell = state[x,y];
+            
+            if(cell.type == Cell.Type.Mine){
+                cell.flagged = true;
+                state[x,y] = cell;
+            }
+        }
+    }
+}
+
 // Gets the cell from position
     private Cell GetCell(int x, int y) {
+        // Check if the cell is valid or not i.e. if the cell is on the grid or not
         if(IsValid(x,y)){
+            // Return the state/ cell at the index
             return state[x,y];
         }
         else{
+            // Returns a new cell that is invalid by default
             return new Cell();
         }
     }
 
+// Check if the cell is valid or not
     private bool IsValid(int x, int y){
+        // Return true if all the conditions are met else returns false.
+        // True = Valid Cell i.e. inside grid, False = Invalid Cell
         return x >= 0 && x < width && y >= 0 && y < height;
     }
 }
