@@ -112,11 +112,51 @@ public class Game : MonoBehaviour {
                 }
                 
                 // Checks for Mines in this new position
-                if(state[x,y].type == Cell.Type.Mine) {
+                if(GetCell(x, y).type == Cell.Type.Mine) {
                     count++;
                 }
             }
         }
+        // Return the Number of Mines Around the cell
         return count;
+    }
+
+    // Update Function to handle user inputs
+    private void Update() {
+        if(Input.GetMouseButtonDown(1)) {
+            Flag();
+        }
+    }
+
+// Logic to handle flagging a cell
+    private void Flag() {
+        // To flag a tile we need to get which tile we clicked on.
+        // The mouse in Screen Space. We need to get position from screen space to world space to cell space.
+        Vector3 worldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        // Converting the world position to cell position
+        Vector3Int cellPosition = board.tilemap.WorldToCell(worldPosition); 
+        // Check if the cell position is valid
+        Cell cell = GetCell(cellPosition.x, cellPosition.y);
+        if(cell.type == Cell.Type.InValid || cell.revealed) {
+            return;
+        }
+
+        cell.flagged = !cell.flagged;
+        state[cellPosition.x, cellPosition.y] = cell;
+        board.Draw(state);
+    }
+
+// Gets the cell from position
+    private Cell GetCell(int x, int y) {
+        if(IsValid(x,y)){
+            return state[x,y];
+        }
+        else{
+            return new Cell();
+        }
+    }
+
+    private bool IsValid(int x, int y){
+        return x >= 0 && x < width && y >= 0 && y < height;
     }
 }

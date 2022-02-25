@@ -4,6 +4,7 @@ using UnityEngine;
 public struct Cell {
     // Enum defined they types of cell that it could be.
     public enum Type {
+        InValid,
         Empty,
         Mine,
         Number,
