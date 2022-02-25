@@ -263,9 +263,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 07425cb4ebfe1cd47bbd6980bf555990, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  width: 16
-  height: 16
-  mineCount: 32
+  width: 4
+  height: 4
+  mineCount: 2
 --- !u!1 &2051781235
 GameObject:
   m_ObjectHideFlags: 0
