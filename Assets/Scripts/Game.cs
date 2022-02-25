@@ -115,12 +115,10 @@ private void OnValidate() {
                 // Gets the new positon
                 x = cellX + adjacentX;
                 y = cellY + adjacentY;
-
                 // Check if Coordinate is out of Bounds
                 if(x < 0 || x >= width || y < 0 || y >= height){
                     continue;
                 }
-                
                 // Checks for Mines in this new position
                 if(GetCell(x, y).type == Cell.Type.Mine) {
                     count++;
