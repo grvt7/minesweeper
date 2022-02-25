@@ -123,8 +123,13 @@ public class Game : MonoBehaviour {
 
     // Update Function to handle user inputs
     private void Update() {
+        // Check for User Input Right Mouse Click
         if(Input.GetMouseButtonDown(1)) {
             Flag();
+        }
+        // Checks for User Input Left Mouse Click
+        else if(Input.GetMouseButtonDown(0)) {
+            Reveal();
         }
     }
 
@@ -137,12 +142,34 @@ public class Game : MonoBehaviour {
         Vector3Int cellPosition = board.tilemap.WorldToCell(worldPosition); 
         // Check if the cell position is valid
         Cell cell = GetCell(cellPosition.x, cellPosition.y);
+        // Check if the cell is Invalid or Revealed
         if(cell.type == Cell.Type.InValid || cell.revealed) {
             return;
         }
-
+        // Perform not Operation on Flagged cell
         cell.flagged = !cell.flagged;
+        // Update the cell state at that position from the cell settings
         state[cellPosition.x, cellPosition.y] = cell;
+        // Redraws the board
+        board.Draw(state);  
+    }
+
+    private void Reveal(){
+        // To flag a tile we need to get which tile we clicked on.
+        // The mouse in Screen Space. We need to get position from screen space to world space to cell space.
+        Vector3 worldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        // Converting the world position to cell position
+        Vector3Int cellPosition = board.tilemap.WorldToCell(worldPosition); 
+        // Check if the cell position is valid
+        Cell cell = GetCell(cellPosition.x, cellPosition.y);
+        if(cell.type == Cell.Type.InValid || cell.revealed || cell.flagged) {
+            return;
+        }
+        // Turn the Cell to Reveal
+        cell.revealed = true;
+        // Update the cell state at that position from the cell settings
+        state[cellPosition.x, cellPosition.y] = cell;
+        // Redraws the board
         board.Draw(state);
     }
 
