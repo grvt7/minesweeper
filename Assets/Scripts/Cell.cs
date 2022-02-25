@@ -17,6 +17,4 @@ public struct Cell {
     public int number;
     // Contains if the cell is revealed or not, flagged or not or if its is a mine exploded or not.
     public bool revealed, flagged, exploded;
-
-
 }
